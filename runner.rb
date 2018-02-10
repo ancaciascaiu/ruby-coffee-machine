@@ -40,8 +40,8 @@ end
 def can_make_drink?(drink, ingredients)
   drink.each do |ingredient, qty|
     return false if ingredients[ingredient][:units] < qty
-    true
   end
+  true
 end
 
 def update_inventory(drink, ingredients)
