@@ -50,6 +50,37 @@ def update_inventory(drink, ingredients)
   end
 end
 
+def display_inventory(ingredients)
+  puts "Inventory: "
+  ingredients.each do |ingredient, details|
+    puts "#{ingredient}, #{details[:units]} units"
+  end
+end
+
+def display_menu(drinks, ingredients)
+  puts "Menu: "
+  drinks.each do |drink, details|
+    puts "#{drink}, $#{cost(ingredients, drinks, drink)}, #{in_stock?(ingredients, drinks, drink)}"
+  end
+end
+
+def cost(ingredients, drinks, drink)
+  p drink
+  cost = 0
+  drinks[drink].each do |ingredient, qty|
+    cost += ingredients[ingredient][:price] * qty
+  end
+  cost.round(2)
+end
+
+def in_stock?(ingredients, drinks, drink)
+  if can_make_drink?(drinks[drink], ingredients)
+    'in-stock'
+  else
+    'out-of-stock'
+  end
+end
+
 def valid_restock_input(user_input)
   user_input.downcase == 'r'
 end
@@ -69,6 +100,8 @@ def invalid_user_input(user_input)
 end
 
 loop do
+  display_inventory(ingredients)
+  display_menu(drinks, ingredients)
   user_input = gets.chomp
 
   restock(ingredients) if valid_restock_input(user_input)
