@@ -26,16 +26,18 @@ def restock(ingredients)
   puts 'Restocked!'
 end
 
-# def quit
-
-# end
+def quit
+  exit
+end
 
 # def order_drink(drink_number)
 
 # end
 
-user_input = gets.chomp
+loop do
+  user_input = gets.chomp
 
-restock(ingredients) if user_input.downcase == 'r'
-# quit if user_input.downcase == 'q'
-# order_drink(user_input) if (1..6).cover?(user_input.to_i)
+  restock(ingredients) if user_input.downcase == 'r'
+  quit if user_input.downcase == 'q'
+  # order_drink(user_input) if (1..6).cover?(user_input.to_i)
+end
