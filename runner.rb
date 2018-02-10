@@ -20,23 +20,28 @@ drinks = {
   cappucino:       { espresso: 2, steamed_milk: 1, foamed_milk: 1 }
 }
 
-loop do
-  user_input = gets.chomp
-
-  restock(ingredients) if valid_restock_input(user_input)
-  exit if valid_quit_input(user_input)
-  order_drink(user_input) if valid_order_input(user_input)
-  puts "Invalid Selection: #{ user_input }" if invalid_user_input(user_input)
-end
-
 def restock(ingredients)
   ingredients.each { |ingredient, value| value[:units] = 10 }
   puts 'Restocked!'
 end
 
-def order_drink(drink_number)
-  p 'here!'
+def order_drink(drinks, ingredients, drink_number)
+  keys = drinks.keys
+  drink_name = keys[drink_number.to_i - 1]
+  drink = drinks[drink_name]
+  if can_make_drink?(drink, ingredients)
+    puts "Dispensing: #{drink_name} "
+    #update inventory:
+  else
+    puts "Out of stock: #{drink_name}"
+  end
+end
 
+def can_make_drink?(drink, ingredients)
+  drink.each do |ingredient, qty|
+    return false if ingredients[ingredient][:units] < qty
+    true
+  end
 end
 
 def valid_restock_input(user_input)
@@ -55,4 +60,13 @@ def invalid_user_input(user_input)
   !valid_restock_input(user_input) &&
     !valid_quit_input(user_input) &&
     !valid_order_input(user_input)
+end
+
+loop do
+  user_input = gets.chomp
+
+  restock(ingredients) if valid_restock_input(user_input)
+  exit if valid_quit_input(user_input)
+  order_drink(drinks, ingredients, user_input) if valid_order_input(user_input)
+  puts "Invalid Selection: #{ user_input }" if invalid_user_input(user_input)
 end
