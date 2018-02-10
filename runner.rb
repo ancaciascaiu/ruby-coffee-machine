@@ -31,7 +31,7 @@ def order_drink(drinks, ingredients, drink_number)
   drink = drinks[drink_name]
   if can_make_drink?(drink, ingredients)
     puts "Dispensing: #{drink_name} "
-    #update inventory:
+    update_inventory(drink, ingredients)
   else
     puts "Out of stock: #{drink_name}"
   end
@@ -41,6 +41,12 @@ def can_make_drink?(drink, ingredients)
   drink.each do |ingredient, qty|
     return false if ingredients[ingredient][:units] < qty
     true
+  end
+end
+
+def update_inventory(drink, ingredients)
+  drink.each do |ingredient, qty|
+    ingredients[ingredient][:units] -= qty
   end
 end
 
