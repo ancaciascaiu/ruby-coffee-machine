@@ -59,8 +59,9 @@ end
 
 def display_menu(drinks, ingredients)
   puts "Menu: "
-  drinks.each do |drink, details|
-    puts "#{drink}, $#{cost(ingredients, drinks, drink)}, #{in_stock?(ingredients, drinks, drink)}"
+  drinks.each_with_index do |drink, index|
+    drink_name = drink[0]
+    puts "Nr. #{index + 1}, #{drink_name}, $#{cost(ingredients, drinks, drink_name)}, #{in_stock?(ingredients, drinks, drink_name)}"
   end
 end
 
