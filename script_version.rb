@@ -21,7 +21,7 @@ drinks = {
 }
 
 def restock(ingredients)
-  ingredients.each { |ingredient, value| value[:units] = 10 }
+  ingredients.each { |_ingredient, value| value[:units] = 10 }
   puts 'Restocked!'
 end
 
@@ -108,5 +108,5 @@ loop do
   restock(ingredients) if valid_restock_input(user_input)
   exit if valid_quit_input(user_input)
   order_drink(drinks, ingredients, user_input) if valid_order_input(user_input)
-  puts "Invalid Selection: #{ user_input }" if invalid_user_input(user_input)
+  puts "Invalid Selection: #{user_input}" if invalid_user_input(user_input)
 end
