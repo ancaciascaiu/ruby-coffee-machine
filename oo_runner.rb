@@ -1,17 +1,17 @@
 # this is the runner file for the Object Oriented version of the Coffee Machine
 
 class CoffeeMachine
-  attr_reader :ingredients, :user_input
+  attr_reader :ingredients, :drink_recipes, :user_input
 
-  def initialize(ingredients:)
-    @ingredients = ingredients
+  def initialize(ingredients:, drink_recipes:)
+    @ingredients   = ingredients
+    @drink_recipes = drink_recipes
   end
 
   def start
     loop do
-      p "started!"
-      # print_inventory
-      # print_menu
+      display_inventory
+      display_menu
       @user_input = gets.chomp
       handle_input
     end
@@ -40,18 +40,68 @@ class CoffeeMachine
   end
 
   def order_drink
-
+    drink_name = drink_recipes.keys[user_input.to_i - 1]
+    drink = drink_recipes[drink_name]
+    if can_make_drink?(drink)
+      puts "Dispensing: #{drink_name} "
+      update_inventory(drink)
+    else
+      puts "Out of stock: #{drink_name}"
+    end
   end
 
   def valid_order_input
-    # !!!can I not rely on 6 as a number of drinks and use the count of drinks?
-    (1..6).cover?(user_input.to_i)
+    (1..drink_recipes.count).cover?(user_input.to_i)
   end
 
   def invalid_user_input
     !valid_restock_input &&
       !valid_quit_input &&
       !valid_order_input
+  end
+
+  def can_make_drink?(drink)
+    drink.each do |ingredient, qty|
+      return false if ingredients[ingredient][:units] < qty
+    end
+    true
+  end
+
+  def update_inventory(drink)
+    drink.each do |ingredient, qty|
+      ingredients[ingredient][:units] -= qty
+    end
+  end
+
+  def display_inventory
+    puts 'Inventory: '
+    ingredients.each do |ingredient, details|
+      puts "#{ingredient}, #{details[:units]} units"
+    end
+  end
+
+  def display_menu
+    puts 'Menu: '
+    drink_recipes.each_with_index do |drink, index|
+      drink_name = drink[0]
+      puts "Nr. #{index + 1}, #{drink_name}, $#{cost(drink_name)}, #{in_stock?(drink_name)}"
+    end
+  end
+
+  def cost(drink_name)
+    cost = 0
+    drink_recipes[drink_name].each do |ingredient, qty|
+      cost += ingredients[ingredient][:price] * qty
+    end
+    cost.round(2)
+  end
+
+  def in_stock?(drink_name)
+    if can_make_drink?(drink_recipes[drink_name])
+      'in-stock'
+    else
+      'out-of-stock'
+    end
   end
 end
 
@@ -68,7 +118,7 @@ ingredients = {
   whipped_cream: { price: 1.00, units: 10 }
 }
 
-drinks = {
+drink_recipes = {
   regular_coffee:  { coffee: 3, sugar: 1, cream: 1 },
   decaf_coffee:    { decaf_coffee: 3, sugar: 1, cream: 1 },
   caffe_latte:     { espresso: 2, steamed_milk: 1 },
@@ -77,4 +127,6 @@ drinks = {
   cappucino:       { espresso: 2, steamed_milk: 1, foamed_milk: 1 }
 }
 
-CoffeeMachine.new(ingredients: ingredients).start
+machine = CoffeeMachine.new(ingredients: ingredients,
+                            drink_recipes: drink_recipes)
+machine.start
