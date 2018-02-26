@@ -1,17 +1,19 @@
 # this is the runner file for the Object Oriented version of the Coffee Machine
 
 class CoffeeMachine
-  attr_reader :ingredients, :drink_recipes, :user_input
+  attr_reader :ingredients, :drink_recipes, :user_input, :inventory, :dispenser
 
   def initialize(ingredients:, drink_recipes:)
     @ingredients   = ingredients
     @drink_recipes = drink_recipes
+    @inventory     = Inventory.new(ingredients: ingredients, drink_recipes: drink_recipes)
+    @dispenser     = Dispenser.new(ingredients: ingredients, drink_recipes: drink_recipes)
   end
 
   def start
     loop do
-      display_inventory
-      display_menu
+      inventory.display_inventory
+      dispenser.display_menu
       @user_input = gets.chomp
       handle_input
     end
@@ -20,15 +22,10 @@ class CoffeeMachine
   private
 
   def handle_input
-    restock if valid_restock_input
+    inventory.restock if valid_restock_input
     exit if valid_quit_input
-    order_drink if valid_order_input
+    dispense_drink if valid_order_input
     puts "Invalid Selection: #{user_input}" if invalid_user_input
-  end
-
-  def restock
-    ingredients.each { |_ingredient, value| value[:units] = 10 }
-    puts 'Restocked!'
   end
 
   def valid_restock_input
@@ -37,17 +34,6 @@ class CoffeeMachine
 
   def valid_quit_input
     user_input.downcase == 'q'
-  end
-
-  def order_drink
-    drink_name = drink_recipes.keys[user_input.to_i - 1]
-    drink = drink_recipes[drink_name]
-    if can_make_drink?(drink)
-      puts "Dispensing: #{drink_name} "
-      update_inventory(drink)
-    else
-      puts "Out of stock: #{drink_name}"
-    end
   end
 
   def valid_order_input
@@ -60,15 +46,27 @@ class CoffeeMachine
       !valid_order_input
   end
 
-  def can_make_drink?(drink)
-    drink.each do |ingredient, qty|
-      return false if ingredients[ingredient][:units] < qty
-    end
-    true
+  def dispense_drink
+    inventory.update(user_input) if dispenser.order_drink(user_input)
+  end
+end
+
+class Inventory
+  attr_reader :ingredients, :drink_recipes
+
+  def initialize(ingredients:, drink_recipes:)
+    @ingredients   = ingredients
+    @drink_recipes = drink_recipes
   end
 
-  def update_inventory(drink)
-    drink.each do |ingredient, qty|
+  def restock
+    ingredients.each { |_ingredient, value| value[:units] = 10 }
+    puts 'Restocked!'
+  end
+
+  def update(drink_number)
+    drink_name = drink_recipes.keys[drink_number.to_i - 1]
+    drink_recipes[drink_name].each do |ingredient, qty|
       ingredients[ingredient][:units] -= qty
     end
   end
@@ -79,16 +77,44 @@ class CoffeeMachine
       puts "#{ingredient}, #{details[:units]} units"
     end
   end
+end
+
+class Dispenser
+  attr_reader :ingredients, :drink_recipes, :drink_name
+
+  def initialize(ingredients:, drink_recipes:)
+    @ingredients   = ingredients
+    @drink_recipes = drink_recipes
+  end
+
+  def order_drink(drink_number)
+    @drink_name = drink_recipes.keys[drink_number.to_i - 1]
+    if can_make_drink?
+      puts "Dispensing: #{drink_name} "
+      true
+    else
+      puts "Out of stock: #{drink_name}"
+    end
+  end
 
   def display_menu
     puts 'Menu: '
     drink_recipes.each_with_index do |drink, index|
-      drink_name = drink[0]
-      puts "Nr. #{index + 1}, #{drink_name}, $#{cost(drink_name)}, #{in_stock?(drink_name)}"
+      @drink_name = drink[0]
+      puts "Nr. #{index + 1}, #{drink_name}, $#{cost}, #{in_stock?}"
     end
   end
 
-  def cost(drink_name)
+  private
+
+  def can_make_drink?
+    drink_recipes[drink_name].each do |ingredient, qty|
+      return false if ingredients[ingredient][:units] < qty
+    end
+    true
+  end
+
+  def cost
     cost = 0
     drink_recipes[drink_name].each do |ingredient, qty|
       cost += ingredients[ingredient][:price] * qty
@@ -96,8 +122,8 @@ class CoffeeMachine
     cost.round(2)
   end
 
-  def in_stock?(drink_name)
-    if can_make_drink?(drink_recipes[drink_name])
+  def in_stock?
+    if can_make_drink?
       'in-stock'
     else
       'out-of-stock'
